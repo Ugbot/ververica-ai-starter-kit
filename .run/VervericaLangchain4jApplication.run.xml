@@ -1,0 +1,17 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="VervericaLangchain4jApplication" type="Application" factoryName="Application" nameIsGenerated="true">
+    <option name="INCLUDE_PROVIDED_SCOPE" value="true" />
+    <option name="MAIN_CLASS_NAME" value="com.evoura.ververica.langchain4j.stream.VervericaLangchain4jApplication" />
+    <module name="ververica-langchain4j" />
+    <option name="PROGRAM_PARAMETERS" value="--kafka-broker-url localhost:9092" />
+    <extension name="coverage">
+      <pattern>
+        <option name="PATTERN" value="com.evoura.ververica.langchain4j.ververicalangchain4j.*" />
+        <option name="ENABLED" value="true" />
+      </pattern>
+    </extension>
+    <method v="2">
+      <option name="Make" enabled="true" />
+    </method>
+  </configuration>
+</component>

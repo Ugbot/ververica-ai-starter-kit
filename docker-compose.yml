@@ -1,0 +1,133 @@
+services:
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.2.1
+    hostname: zookeeper
+    container_name: zookeeper
+    ports:
+      - "2181:2181"
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+  kafka_broker:
+    image: confluentinc/cp-server:7.5.1
+    hostname: kafka_broker
+    container_name: kafka_broker
+    depends_on:
+      - zookeeper
+    ports:
+      - "9092:9092"
+      - "29092:29092"
+    healthcheck:
+      test: ["CMD-SHELL", "sleep 1;"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: 'zookeeper:2181'
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka_broker:29092,PLAINTEXT_HOST://localhost:9092
+      KAFKA_METRIC_REPORTERS: io.confluent.metrics.reporter.ConfluentMetricsReporter
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
+      KAFKA_CONFLUENT_LICENSE_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_CONFLUENT_BALANCER_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      CONFLUENT_METRICS_REPORTER_TOPIC_REPLICAS: 1
+      CONFLUENT_METRICS_ENABLE: 'true'
+      KAFKA_LOG4J_LOGGERS: org.apache.zookeeper=ERROR,org.apache.kafka=ERROR, kafka=ERROR, kafka.cluster=ERROR,kafka.controller=ERROR, kafka.coordinator=ERROR,kafka.log=ERROR,kafka.server=ERROR,kafka.zookeeper=ERROR,state.change.logger=ERROR
+      KAFKA_LOG4J_ROOT_LOGLEVEL: ERROR
+      CONFLUENT_METRICS_REPORTER_BOOTSTRAP_SERVERS: kafka_broker:29092
+  kafka-init-sources:
+    image: confluentinc/cp-kafka:latest
+    depends_on:
+      - kafka_broker
+    container_name: kafka-init-sources
+    healthcheck:
+      test: [ "CMD", "kafka-topics", "--list", "--bootstrap-server", "kafka_broker:29092" ]
+      interval: 30s
+      timeout: 10s
+      retries: 4
+    command:
+      - bash
+      - -c
+      - |
+        cub kafka-ready -b kafka_broker:29092 1 40 &&
+         kafka-topics --create --topic llm-config --bootstrap-server kafka_broker:29092
+         kafka-topics --create --topic user-message --bootstrap-server kafka_broker:29092
+         kafka-topics --create --topic chat-memory --bootstrap-server kafka_broker:29092
+         kafka-topics --create --topic ai-response --bootstrap-server kafka_broker:29092
+         sleep infinity
+
+  
+
+
+  ollama:
+    image: ollama/ollama:latest
+    container_name: ollama
+    pull_policy: always
+    tty: true
+    restart: unless-stopped
+    environment:
+      - 'OLLAMA_KEEP_ALIVE=24h'
+    volumes:
+      - ./ollama-data:/root/.ollama
+    ports:
+      - 11434:11434
+  ollama-init-sources:
+    image: ollama/ollama:latest
+    container_name: ollama-init-sources
+    volumes:
+      - ./ollama-data:/root/.ollama
+    entrypoint: /bin/sh
+    depends_on:
+      - ollama
+    environment:
+      - 'OLLAMA_HOST=ollama:11434'
+    command:
+      - "-c"
+      - "sleep 3; ollama pull llama3.1; ollama pull nomic-embed-text:latest"
+
+  ## FLINK
+  jobmanager:
+    profiles:
+      - flink
+    container_name: jobmanager
+    image: ververica-langchain4j:0.0.1-SNAPSHOT
+    user: "0:0"
+    ports:
+      - "8082:8081"
+    command:
+      - sh
+      - -c
+      - |
+        (sleep 10
+        flink run /opt/flink/usrlib/ververica-langchain4j-0.0.1-SNAPSHOT.jar) &
+        /opt/flink/bin/jobmanager.sh start-foreground
+    environment:
+      - |
+        FLINK_PROPERTIES=
+        jobmanager.rpc.address: jobmanager
+        rest.port: 8081
+        state.backend: rocksdb
+        state.backend.incremental: true
+        classloader.resolve-order: parent-first
+        KAFKA_BROKER: kafka_broker:29092
+  taskmanager:
+    profiles:
+      - flink
+    container_name: taskmanager
+    image: ververica-langchain4j:0.0.1-SNAPSHOT
+    user: "0:0"
+    depends_on:
+      - jobmanager
+    command: taskmanager
+    environment:
+      - |
+        FLINK_PROPERTIES=
+        jobmanager.rpc.address: jobmanager
+        rest.port: 8081
+        taskmanager.numberOfTaskSlots: 2
+        state.backend: rocksdb
+        state.backend.incremental: true
+        classloader.resolve-order: parent-first

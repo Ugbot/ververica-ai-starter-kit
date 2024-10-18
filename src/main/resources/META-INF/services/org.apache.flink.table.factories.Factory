@@ -1,0 +1,2 @@
+com.evoura.ververica.langchain4j.sql.connector.language.LangChainTableFactory
+com.evoura.ververica.langchain4j.sql.connector.embedding.LangChainEmbeddingTableFactory

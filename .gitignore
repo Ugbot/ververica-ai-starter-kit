@@ -1,0 +1,25 @@
+.idea/*
+*.iml
+target/
+bin/
+.settings/
+.classpath
+.factorypath
+.project
+ibm-web-ext.xml
+**/tomcat/
+*.log
+*.MF
+transaction-logs/
+*.lck
+logs/
+
+# OSX
+**/.DS_Store
+
+pom.xml.versionsBackup
+/.java-version
+/dependency-reduced-pom.xml
+
+ollama-data/
+open-webui-data/
