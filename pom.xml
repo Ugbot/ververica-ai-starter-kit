@@ -11,16 +11,21 @@
     <description>Demo project for Apache Flink with LangChain4</description>
 
     <properties>
+        <java.version>11</java.version>
+
         <flink.version>1.17.2</flink.version>
         <flink.kafka.connector.version>3.1.0-1.17</flink.kafka.connector.version>
-        <java.version>11</java.version>
+
         <log4j.version>2.17.1</log4j.version>
         <langchain4j.version>0.35.0</langchain4j.version>
+
         <lombok.version>1.18.34</lombok.version>
+
         <maven.plugin.shade.version>3.6.0</maven.plugin.shade.version>
         <maven.plugin.jib.version>3.3.2</maven.plugin.jib.version>
-        <testontainers.version>1.19.1</testontainers.version>
+
         <junit.version>5.8.1</junit.version>
+        <testontainers.version>1.19.1</testontainers.version>
     </properties>
 
     <dependencies>
@@ -78,6 +83,11 @@
         </dependency>
 
 
+        <dependency>
+            <groupId>com.google.code.gson</groupId>
+            <artifactId>gson</artifactId>
+            <version>2.10.1</version>
+        </dependency>
         <dependency>
             <groupId>dev.langchain4j</groupId>
             <artifactId>langchain4j-open-ai</artifactId>
@@ -208,8 +218,8 @@
                                 <excludes>
                                     <exclude>org.apache.flink:flink-shaded-force-shading</exclude>
                                     <exclude>com.google.code.findbugs:jsr305</exclude>
-                                    <exclude>org.slf4j:*</exclude>
-                                    <exclude>org.apache.logging.log4j:*</exclude>
+<!--                                    <exclude>org.slf4j:*</exclude>-->
+<!--                                    <exclude>org.apache.logging.log4j:*</exclude>-->
                                 </excludes>
                             </artifactSet>
                             <filters>
@@ -241,7 +251,7 @@
                 <version>${maven.plugin.jib.version}</version>
                 <configuration>
                     <from>
-                        <image>flink:1.19.1-java17</image>
+                        <image>flink:1.17.2-java11</image>
                     </from>
                     <container>
                         <entrypoint>/docker-entrypoint.sh</entrypoint>
