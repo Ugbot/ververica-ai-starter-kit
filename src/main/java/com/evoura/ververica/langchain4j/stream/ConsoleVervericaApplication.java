@@ -107,7 +107,7 @@ public class ConsoleVervericaApplication {
       System.out.print("Enter System Message: ");
       String systemMessage = scanner.nextLine();
 
-      return new LLMConfig(userId, AiModel.DEFAULT, new HashMap<>(), systemMessage);
+      return new LLMConfig(userId, AiModel.OLLAMA, Map.of("baseUrl", "http://ollama:11434", "modelName", "qwen2.5:0.5b"), systemMessage);
     }
 
     System.out.println("Create LLM Config");
@@ -126,8 +126,8 @@ public class ConsoleVervericaApplication {
     System.out.print("Enter number of custom properties \n" +
             "Example input:\n" +
             "\t2 (parameters)\n" +
-            "\tkey: baseUrl value: http://localhost:11434\n" +
-            "\tkey: modelName value: llama3.1\n" +
+            "\tkey: baseUrl value: http://ollama:11434\n" +
+            "\tkey: modelName value: smallthinker\n" +
             ": ");
     int propertyCount = scanner.nextInt();
     scanner.nextLine(); // consume newline

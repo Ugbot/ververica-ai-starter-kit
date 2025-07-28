@@ -18,7 +18,6 @@ logs/
 **/.DS_Store
 
 pom.xml.versionsBackup
-/.java-version
 /dependency-reduced-pom.xml
 
 ollama-data/
